@@ -283,6 +283,32 @@ document.querySelectorAll('.r').forEach(el=>observer.observe(el));
 """
 
 
+def replace_block(html, marker, content):
+    return re.sub(
+        rf"(  *<!-- {marker}:НАЧАЛО[^\n]*-->\n).*?( *<!-- {marker}:КОНЕЦ -->)",
+        lambda m: f"{m.group(1)}{content}{m.group(2)}",
+        html,
+        flags=re.S,
+    )
+
+
+def gallery(folder, css_class, alt, onclick=""):
+    """Собирает галерею из всего, что лежит в папке. Порядок — по имени файла,
+    поэтому фотографии удобно называть 01.jpg, 02.jpg и так далее."""
+    files = sorted(
+        f.name for f in (ROOT / folder).iterdir() if f.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
+    )
+    if not files:
+        return "", 0
+    click = f' onclick="{onclick}"' if onclick else ""
+    rows = "\n".join(
+        f'    <div class="{css_class}"{click}>'
+        f'<img src="/{folder}/{f}" alt="{alt}" loading="lazy"></div>'
+        for f in files
+    )
+    return rows + "\n", len(files)
+
+
 def main():
     data = json.loads((ROOT / "data/cars.json").read_text(encoding="utf-8"))
     cars = data["cars"]
@@ -301,12 +327,16 @@ def main():
     grid = "\n".join(card(c) for c in published)
     home_path = ROOT / "index.html"
     home = home_path.read_text(encoding="utf-8")
-    home = re.sub(
-        r"(  <!-- КАТАЛОГ:НАЧАЛО[^\n]*-->\n).*?(  <!-- КАТАЛОГ:КОНЕЦ -->)",
-        lambda m: f'{m.group(1)}  <div class="cars-grid">\n{grid}\n  </div>\n{m.group(2)}',
-        home,
-        flags=re.S,
+    home = replace_block(home, "КАТАЛОГ", f'  <div class="cars-grid">\n{grid}\n  </div>\n')
+
+    clients, n_clients = gallery("img/clients", "cli-photo", "Клиент Регион 702 со своим автомобилем")
+    home = replace_block(home, "КЛИЕНТЫ", f'  <div class="cli-grid r">\n{clients}  </div>\n')
+
+    reviews, n_reviews = gallery(
+        "img/reviews", "rv-card", "Отзыв клиента на Авито", onclick="openLB(this)"
     )
+    home = replace_block(home, "ОТЗЫВЫ", f'      <div class="rv-grid r">\n{reviews}      </div>\n')
+
     home_path.write_text(home, encoding="utf-8")
 
     # политика конфиденциальности
@@ -339,6 +369,7 @@ def main():
 
     drafts = [c["slug"] for c in cars if c.get("status") != "готово"]
     print(f"страниц авто: {len(cars)} | в каталоге: {len(published)}")
+    print(f"фото клиентов: {n_clients} | скриншотов отзывов: {n_reviews}")
     if drafts:
         print("черновики (не попадут в каталог, когда появится хоть одно готовое):")
         for d in drafts:
