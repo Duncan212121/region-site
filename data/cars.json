@@ -1,0 +1,95 @@
+{
+  "_справка": {
+    "как добавить авто": "Скопируй любой блок из списка cars, поменяй поля, положи фотографии в img/cars/<slug>/ и скажи мне — я пересоберу сайт.",
+    "slug": "адрес страницы: img/cars/<slug>/ и /auto/<slug>.html. Только латиница, цифры и дефис.",
+    "country": "cn — Китай, kr — Корея, ae — ОАЭ, kg — Кыргызстан",
+    "price": "число в рублях без пробелов. 0 — вместо цены покажем «по запросу»",
+    "photos": "имена файлов из папки img/cars/<slug>/. Первая фотография идёт в карточку каталога.",
+    "short": "1–2 строки под названием в карточке каталога",
+    "description": "абзацы на странице авто, каждый абзац — отдельная строка списка",
+    "specs": "таблица характеристик, порядок сохраняется",
+    "options": "список комплектации, показывается галочками",
+    "status": "черновик — страница собирается, но в каталог не попадает. готово — показываем везде."
+  },
+
+  "cars": [
+    {
+      "slug": "toyota-rav4-2026",
+      "name": "Toyota RAV4",
+      "year": 2026,
+      "country": "kg",
+      "price": 3850000,
+      "photos": ["01.jpg"],
+      "short": "",
+      "description": [],
+      "specs": {},
+      "options": [],
+      "status": "черновик"
+    },
+    {
+      "slug": "toyota-highlander-2026",
+      "name": "Toyota Highlander",
+      "year": 2026,
+      "country": "kg",
+      "price": 4760000,
+      "photos": ["01.jpg"],
+      "short": "",
+      "description": [],
+      "specs": {},
+      "options": [],
+      "status": "черновик"
+    },
+    {
+      "slug": "mazda-cx-5-2026",
+      "name": "Mazda CX-5",
+      "year": 2026,
+      "country": "cn",
+      "price": 2560000,
+      "photos": ["01.jpg"],
+      "short": "",
+      "description": [],
+      "specs": {},
+      "options": [],
+      "status": "черновик"
+    },
+    {
+      "slug": "nissan-qashqai-2026",
+      "name": "Nissan Qashqai",
+      "year": 2026,
+      "country": "cn",
+      "price": 2080000,
+      "photos": ["01.jpg"],
+      "short": "",
+      "description": [],
+      "specs": {},
+      "options": [],
+      "status": "черновик"
+    },
+    {
+      "slug": "skoda-superb-2026",
+      "name": "Škoda Superb",
+      "year": 2026,
+      "country": "cn",
+      "price": 2550000,
+      "photos": ["01.jpg"],
+      "short": "",
+      "description": [],
+      "specs": {},
+      "options": [],
+      "status": "черновик"
+    },
+    {
+      "slug": "honda-cr-v-2026",
+      "name": "Honda CR-V",
+      "year": 2026,
+      "country": "cn",
+      "price": 3700000,
+      "photos": ["01.jpg"],
+      "short": "",
+      "description": [],
+      "specs": {},
+      "options": [],
+      "status": "черновик"
+    }
+  ]
+}
