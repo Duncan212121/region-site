@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /send.php
+
+Host: https://region-702.ru
+Sitemap: https://region-702.ru/sitemap.xml

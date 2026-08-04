@@ -2,17 +2,28 @@
 """Собирает каталог на главной и страницы отдельных авто из data/cars.json.
 
 Запуск:  python3 build.py
-Трогает: index.html (только блок между маркерами КАТАЛОГ), auto/*.html, sitemap.xml
+Трогает: index.html (блоки между маркерами), <slug>.html, privacy.html, sitemap.xml
 """
 
 import json
 import pathlib
 import re
-import shutil
 from html import escape
 
 ROOT = pathlib.Path(__file__).parent
 SITE = "https://region-702.ru"
+
+METRIKA = """<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+   (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+   m[i].l=1*new Date();
+   for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+   k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+   (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+   ym(109256790, "init", {clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/109256790" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->"""
 
 COUNTRIES = {
     "cn": ("🇨🇳", "Китай", "30–45 дней"),
@@ -135,22 +146,47 @@ function toggleMob(){{document.getElementById('mob').classList.toggle('on')}}
 """
 
 
+def car_meta(car):
+    """Страна, срок доставки и подпись года — в одном месте, чтобы карточка
+    и страница машины не разъезжались."""
+    flag, country, default_days = COUNTRIES[car["country"]]
+    days = car.get("days") or default_days
+    year = car.get("year") or 0
+    title = f'{car["name"]} {year}'.strip() if year else car["name"]
+    return flag, country, days, year, title
+
+
+def price_block(car, prefix="от"):
+    if not car.get("price"):
+        return f'<div class="price-wrap"><div class="price">Договорная</div></div>'
+    return (
+        f'<div class="price-wrap"><div class="price-from">{prefix}</div>'
+        f'<div class="price">{rub(car["price"])}</div></div>'
+    )
+
+
 def card(car):
     """Карточка авто в каталоге на главной."""
-    flag, country, days = COUNTRIES[car["country"]]
-    photo = f"/img/cars/{car['slug']}/{car['photos'][0]}"
-    short = (
-        f'<div class="car-short">{escape(car["short"])}</div>' if car.get("short") else ""
-    )
+    flag, country, days, year, title = car_meta(car)
+    if car.get("photos"):
+        shot = (
+            f'<div class="car-shot"><img class="car-img" '
+            f'src="/img/cars/{car["slug"]}/{car["photos"][0]}" '
+            f'alt="{escape(title)}" loading="lazy"></div>'
+        )
+    else:
+        shot = '<div class="car-shot car-nophoto"><span>Фото готовится</span></div>'
+
+    yr = f' <span class="car-yr">{year}</span>' if year else ""
+    short = f'<div class="car-short">{escape(car["short"])}</div>' if car.get("short") else ""
     return (
-        f'    <a class="car r" href="/auto/{car["slug"]}.html">'
-        f'<div class="car-shot"><img class="car-img" src="{photo}" alt="{escape(car["name"])} {car["year"]}" loading="lazy"></div>'
+        f'    <a class="car r" href="/{car["slug"]}.html">'
+        f"{shot}"
         f'<div class="car-body">'
         f'<div class="car-origin">{flag} {country}</div>'
-        f'<div class="car-name">{escape(car["name"])} <span class="car-yr">{car["year"]}</span></div>'
+        f'<div class="car-name">{escape(car["name"])}{yr}</div>'
         f"{short}"
-        f'<div class="car-foot">'
-        f'<div class="price-wrap"><div class="price-from">от</div><div class="price">{rub(car["price"])}</div></div>'
+        f'<div class="car-foot">{price_block(car)}'
         f'<div class="car-time">⏱ {days}</div>'
         f"</div></div></a>"
     )
@@ -158,69 +194,114 @@ def card(car):
 
 def car_page(car, blocks):
     """Отдельная страница автомобиля."""
-    flag, country, days = COUNTRIES[car["country"]]
-    slug, name, year = car["slug"], car["name"], car["year"]
-    title = f"{name} {year}"
+    flag, country, days, year, title = car_meta(car)
+    slug, name = car["slug"], car["name"]
     photos = [f"/img/cars/{slug}/{p}" for p in car["photos"]]
 
-    if car.get("description"):
-        desc_html = "\n        ".join(
-            f"<p>{escape(p)}</p>" for p in car["description"]
-        )
-    else:
-        desc_html = "<p>Описание готовится. Напишите нам — расскажем всё про эту машину и рассчитаем стоимость под ваш бюджет.</p>"
+    seo_title = car.get("seo_title") or f"{title} под ключ из {country} — Регион 702, Уфа"
+    meta_desc = car.get("seo_description") or car.get("short") or (
+        f"{title} под ключ из {country} — импорт с доставкой по России. Регион 702, Уфа."
+    )
+    keywords = (
+        f'\n<meta name="keywords" content="{escape(car["keywords"])}">'
+        if car.get("keywords") else ""
+    )
 
-    meta_desc = car.get("short") or f"{title} под ключ из {country} — импорт с доставкой по России. Регион 702, Уфа."
+    if photos:
+        main_shot = f'<div class="cg-main"><img id="cgShot" src="{photos[0]}" alt="{escape(title)}"></div>'
+        og_image = f'\n<meta property="og:image" content="{SITE}{photos[0]}">'
+    else:
+        main_shot = '<div class="cg-main cg-nophoto"><span>Фотографии готовятся</span></div>'
+        og_image = ""
 
     gallery = ""
     if len(photos) > 1:
         thumbs = "\n        ".join(
-            f'<button class="cg-thumb{" on" if i == 0 else ""}" onclick="showShot(this,\'{p}\')">'
+            f'<button class="cg-thumb{" on" if i == 0 else ""}" onclick="showShot(this,\'{p}\')" '
+            f'aria-label="Фото {i + 1}">'
             f'<img src="{p}" alt="{escape(title)} — фото {i + 1}" loading="lazy"></button>'
             for i, p in enumerate(photos)
         )
         gallery = f'\n      <div class="cg-thumbs">\n        {thumbs}\n      </div>'
 
-    specs = ""
+    blocks_html = []
+
+    if car.get("description") or car.get("кому подходит"):
+        paras = "\n        ".join(f"<p>{escape(p)}</p>" for p in car.get("description", []))
+        aside = ""
+        if car.get("кому подходит"):
+            aside = (
+                f'\n      <div class="cp-aside"><span class="cp-aside-t">Кому подходит</span>'
+                f'<p>{escape(car["кому подходит"])}</p></div>'
+            )
+        blocks_html.append(
+            f'\n  <div class="cp-block">\n    <h2 class="cp-h2">Как привозим</h2>\n'
+            f'    <div class="cp-text">\n        {paras}\n    </div>{aside}\n  </div>'
+        )
+
+    if car.get("options"):
+        items = "\n        ".join(f"<li>{escape(o)}</li>" for o in car["options"])
+        blocks_html.append(
+            f'\n  <div class="cp-block">\n    <h2 class="cp-h2">Сильные стороны</h2>\n'
+            f'    <ul class="opts">\n        {items}\n    </ul>\n  </div>'
+        )
+
     if car.get("specs"):
         rows = "\n        ".join(
-            f'<div class="spec"><div class="spec-k">{escape(k)}</div><div class="spec-v">{escape(str(v))}</div></div>'
+            f'<div class="spec"><div class="spec-k">{escape(k)}</div>'
+            f'<div class="spec-v">{escape(str(v))}</div></div>'
             for k, v in car["specs"].items()
         )
-        specs = f"""
-    <div class="cp-block">
-      <h2 class="cp-h2">Характеристики</h2>
-      <div class="specs">
-        {rows}
-      </div>
-    </div>"""
-
-    options = ""
-    if car.get("options"):
-        items = "\n        ".join(
-            f"<li>{escape(o)}</li>" for o in car["options"]
+        blocks_html.append(
+            f'\n  <div class="cp-block">\n    <h2 class="cp-h2">Характеристики</h2>\n'
+            f'    <div class="specs">\n        {rows}\n    </div>\n  </div>'
         )
-        options = f"""
-    <div class="cp-block">
-      <h2 class="cp-h2">Комплектация</h2>
-      <ul class="opts">
-        {items}
-      </ul>
-    </div>"""
 
+    if car.get("faq"):
+        items = "\n      ".join(
+            f'<div class="fq"><button class="fq-q" onclick="toggleFq(this)">'
+            f'<span class="fq-qt">{escape(f["вопрос"])}</span><div class="fq-ico">+</div></button>'
+            f'<div class="fq-ans"><div class="fq-ai">{escape(f["ответ"])}</div></div></div>'
+            for f in car["faq"]
+        )
+        blocks_html.append(
+            f'\n  <div class="cp-block">\n    <h2 class="cp-h2">Частые вопросы</h2>\n'
+            f'    <div class="faq-list">\n      {items}\n    </div>\n  </div>'
+        )
+
+    schema = {
+        "@context": "https://schema.org",
+        "@type": "Car",
+        "name": title,
+        "brand": name.split()[0],
+        "description": meta_desc,
+        "offers": {
+            "@type": "Offer",
+            "priceCurrency": "RUB",
+            "availability": "https://schema.org/PreOrder",
+            "seller": {"@type": "AutoDealer", "name": "Регион 702", "areaServed": "RU"},
+        },
+    }
+    if year:
+        schema["modelDate"] = year
+    if photos:
+        schema["image"] = SITE + photos[0]
+    if car.get("price"):
+        schema["offers"]["price"] = car["price"]
+
+    wa = escape(f"Здравствуйте, интересует {name} из {country}")
     return f"""<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>{escape(title)} под ключ из {country} — Регион 702, Уфа</title>
-<meta name="description" content="{escape(meta_desc)}">
-<link rel="canonical" href="{SITE}/auto/{slug}.html">
+<title>{escape(seo_title)}</title>
+<meta name="description" content="{escape(meta_desc)}">{keywords}
+<link rel="canonical" href="{SITE}/{slug}.html">
 <meta property="og:type" content="product">
-<meta property="og:title" content="{escape(title)} — от {rub(car['price'])} под ключ">
-<meta property="og:description" content="{escape(meta_desc)}">
-<meta property="og:image" content="{SITE}{photos[0]}">
-<meta property="og:url" content="{SITE}/auto/{slug}.html">
+<meta property="og:title" content="{escape(seo_title)}">
+<meta property="og:description" content="{escape(meta_desc)}">{og_image}
+<meta property="og:url" content="{SITE}/{slug}.html">
 <meta property="og:site_name" content="Регион 702">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -228,23 +309,9 @@ def car_page(car, blocks):
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
 <script type="application/ld+json">
-{json.dumps({
-    "@context": "https://schema.org",
-    "@type": "Car",
-    "name": title,
-    "brand": name.split()[0],
-    "modelDate": year,
-    "image": SITE + photos[0],
-    "description": meta_desc,
-    "offers": {
-        "@type": "Offer",
-        "price": car["price"],
-        "priceCurrency": "RUB",
-        "availability": "https://schema.org/PreOrder",
-        "seller": {"@type": "AutoDealer", "name": "Регион 702", "areaServed": "RU"},
-    },
-}, ensure_ascii=False, indent=2)}
+{json.dumps(schema, ensure_ascii=False, indent=2)}
 </script>
+{METRIKA}
 </head>
 <body>
 
@@ -261,30 +328,24 @@ def car_page(car, blocks):
 
   <div class="cp-top">
     <div class="cp-gallery">
-      <div class="cg-main"><img id="cgShot" src="{photos[0]}" alt="{escape(title)}"></div>{gallery}
+      {main_shot}{gallery}
     </div>
 
     <div class="cp-side">
       <div class="car-origin">{flag} {country}</div>
-      <h1 class="cp-title">{escape(name)} <em>{year}</em></h1>
-      <div class="cp-price"><span class="price-from">Под ключ от</span><div class="price">{rub(car['price'])}</div></div>
-      <p class="cp-note">Покупка + логистика + таможня + утильсбор + документы. Точную стоимость рассчитаем под вашу комплектацию.</p>
+      <h1 class="cp-title">{escape(name)}{f' <em>{year}</em>' if year else ''}</h1>
+      <div class="cp-price">{price_block(car, prefix="Под ключ от")}</div>
+      <p class="cp-note">Покупка + логистика + таможня + утильсбор + документы.
+      Точную стоимость рассчитаем под вашу комплектацию.</p>
       <div class="cp-facts">
         <div class="cp-fact"><div class="cp-fact-k">Срок доставки</div><div class="cp-fact-v">{days}</div></div>
-        <div class="cp-fact"><div class="cp-fact-k">Год выпуска</div><div class="cp-fact-v">{year}</div></div>
+        <div class="cp-fact"><div class="cp-fact-k">Видеопроверка</div><div class="cp-fact-v">Бесплатно</div></div>
       </div>
       <a href="/#contacts" class="btn-g cp-cta">Рассчитать стоимость</a>
-      <a href="https://wa.me/79378561566?text={escape(f'Здравствуйте, интересует {title}')}" target="_blank" rel="noopener" class="btn-o cp-cta">Спросить в WhatsApp</a>
+      <a href="https://wa.me/79378561566?text={wa}" target="_blank" rel="noopener" class="btn-o cp-cta">Спросить в WhatsApp</a>
     </div>
   </div>
-
-  <div class="cp-block">
-    <h2 class="cp-h2">Об автомобиле</h2>
-    <div class="cp-text">
-        {desc_html}
-    </div>
-  </div>
-{specs}{options}
+{''.join(blocks_html)}
   <div class="cp-back"><a href="/#catalog">← Ко всем автомобилям</a></div>
 </main>
 
@@ -298,6 +359,11 @@ function showShot(btn,src){{
   document.getElementById('cgShot').src=src;
   document.querySelectorAll('.cg-thumb').forEach(t=>t.classList.remove('on'));
   btn.classList.add('on');
+}}
+function toggleFq(btn){{
+  const it=btn.closest('.fq'),wasOpen=it.classList.contains('open');
+  document.querySelectorAll('.fq.open').forEach(f=>f.classList.remove('open'));
+  if(!wasOpen)it.classList.add('open');
 }}
 const observer=new IntersectionObserver(e=>e.forEach(x=>{{if(x.isIntersecting)x.target.classList.add('on')}}),{{threshold:.08}});
 document.querySelectorAll('.r').forEach(el=>observer.observe(el));
@@ -339,12 +405,8 @@ def main():
     blocks = shared_blocks()
 
     # страницы собираем для всех, включая черновики — чтобы было что смотреть
-    out = ROOT / "auto"
-    if out.exists():
-        shutil.rmtree(out)
-    out.mkdir()
     for car in cars:
-        (out / f"{car['slug']}.html").write_text(car_page(car, blocks), encoding="utf-8")
+        (ROOT / f"{car['slug']}.html").write_text(car_page(car, blocks), encoding="utf-8")
 
     # в каталог на главной пускаем только готовые
     published = [c for c in cars if c.get("status") == "готово"] or cars
@@ -381,7 +443,7 @@ def main():
     )
 
     urls = ["/", "/china.html", "/korea.html", "/kyrgyzstan.html"]
-    urls += [f"/auto/{c['slug']}.html" for c in published]
+    urls += [f"/{c['slug']}.html" for c in published]
     body = "\n".join(
         f"  <url><loc>{SITE}{u}</loc></url>" for u in urls
     )
