@@ -42,8 +42,8 @@ a{color:inherit;text-decoration:none}
 .badge{display:inline-flex;align-items:center;gap:10px;margin-bottom:24px;opacity:0;animation:fu .8s ease .3s forwards}
 .badge-line{width:36px;height:1px;background:var(--gold)}
 .badge span{font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
-h1{font-family:var(--fd);font-size:clamp(38px,6.5vw,86px);font-weight:300;line-height:1.06;margin-bottom:22px;opacity:0;animation:fu .9s ease .5s forwards}
-h1 em{font-style:italic;color:var(--gl)}
+#hero h1{font-family:var(--fd);font-size:clamp(38px,6.5vw,86px);font-weight:300;line-height:1.06;margin-bottom:22px;opacity:0;animation:fu .9s ease .5s forwards}
+#hero h1 em{font-style:italic;color:var(--gl)}
 .hero-sub{font-size:14.5px;color:var(--wd);max-width:500px;line-height:1.8;margin-bottom:44px;opacity:0;animation:fu .9s ease .7s forwards}
 .cta-row{display:flex;gap:14px;flex-wrap:wrap;opacity:0;animation:fu .9s ease .9s forwards}
 .btn-g{background:var(--gold);color:var(--bk);padding:14px 32px;font-family:var(--fb);font-size:11.5px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;border:none;cursor:pointer;transition:all .25s;display:inline-block}
@@ -156,9 +156,9 @@ h2 em{font-style:italic;color:var(--gold)}
 .fq-q{width:100%;background:none;border:none;padding:20px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;text-align:left}
 .fq-qt{font-size:14.5px;font-weight:400;color:var(--w);line-height:1.5}
 .fq-ico{width:26px;height:26px;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:15px;flex-shrink:0;transition:all .28s}
-.fq.on .fq-ico{background:var(--gold);color:var(--bk);transform:rotate(45deg)}
+.fq.open .fq-ico{background:var(--gold);color:var(--bk);transform:rotate(45deg)}
 .fq-ans{max-height:0;overflow:hidden;transition:max-height .38s ease}
-.fq.on .fq-ans{max-height:360px}
+.fq.open .fq-ans{max-height:360px}
 .fq-ai{padding:0 0 20px;font-size:13.5px;color:var(--wd);line-height:1.8}
 
 #contacts{background:var(--g1);border-top:1px solid var(--bd)}
@@ -317,3 +317,31 @@ footer{background:var(--g1);border-top:1px solid var(--bd);padding:32px 52px}
   .specs,.opts{grid-template-columns:1fr}
   .spec{padding:13px 16px}
 }
+
+/* ── текстовая страница: политика конфиденциальности ── */
+.doc{padding:104px 52px 92px;max-width:840px;margin:0 auto}
+.doc-title{font-family:var(--fd);font-size:clamp(30px,4.5vw,48px);font-weight:300;line-height:1.12;margin-bottom:26px}
+.doc-lead{font-size:15px;color:var(--w);line-height:1.85;padding-bottom:26px;border-bottom:1px solid var(--bd)}
+.doc-h2{font-family:var(--fd);font-size:23px;font-weight:400;color:var(--gold);margin:38px 0 13px;line-height:1.3}
+.doc p{font-size:14px;color:var(--wd);line-height:1.9;margin-bottom:13px}
+.doc-list{margin:0 0 15px 0;padding-left:22px}
+.doc-list li{font-size:14px;color:var(--wd);line-height:1.85;margin-bottom:6px}
+.doc-list li::marker{color:var(--gold)}
+.doc-upd{margin-top:26px;padding-top:20px;border-top:1px solid var(--bd);
+  font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--gd)}
+.doc-todo{color:#e5484d;border-bottom:1px dashed #e5484d}
+
+/* ── согласие на обработку персональных данных ── */
+.consent{display:flex;align-items:flex-start;gap:11px;margin:18px 0 4px;cursor:pointer}
+.consent input{appearance:none;width:17px;height:17px;flex-shrink:0;margin-top:1px;cursor:pointer;
+  border:1px solid var(--bd);background:rgba(255,255,255,.04);transition:.2s;position:relative}
+.consent input:checked{background:var(--gold);border-color:var(--gold)}
+.consent input:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;color:var(--bk);font-size:12px;line-height:1}
+.consent input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.consent-t{font-size:11.5px;color:var(--wd);line-height:1.6}
+.consent-t a{color:var(--gold);border-bottom:1px solid rgba(200,169,110,.35)}
+.consent-t a:hover{border-bottom-color:var(--gold)}
+
+/* ── сноска про Meta ── */
+.meta-note{font-size:10px;color:var(--gd);line-height:1.6;margin-top:11px;font-style:italic}

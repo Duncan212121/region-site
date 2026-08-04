@@ -223,6 +223,8 @@
         <a href="https://www.avito.ru/brands/5c4e156e5aae5295ed59dbab4f619199" target="_blank" class="ch r d4"><div class="ch-ico">🔑</div><div><div class="ch-name">Авито</div><div class="ch-desc">Реальные отзывы с верификацией платформы</div></div><div class="ch-arr">→</div></a>
         <div class="ch" style="cursor:default"><div class="ch-ico">🌍</div><div><div class="ch-name">Свои люди в каждой стране</div><div class="ch-desc">Проверенные партнёры в Китае, Корее, ОАЭ и Кыргызстане</div></div></div>
       </div>
+      <p class="meta-note">Instagram принадлежит компании Meta Platforms Inc., признанной
+      экстремистской организацией, её деятельность запрещена на территории Российской Федерации.</p>
     </div>
   </div>
 </section>
@@ -262,6 +264,11 @@
           </select>
         </div>
         <div class="fg"><label class="fl">Комментарий</label><textarea class="ft" id="fcom" placeholder="Бюджет, пожелания, вопросы..."></textarea></div>
+        <label class="consent">
+          <input type="checkbox" id="fagree">
+          <span class="consent-t">Я даю согласие на обработку персональных данных и принимаю
+          <a href="/privacy.html" target="_blank">политику конфиденциальности</a>.</span>
+        </label>
         <button class="fsub" id="submitBtn" onclick="sendForm()">Отправить заявку →</button>
       </div>
       <div class="success" id="suc">
@@ -282,6 +289,8 @@
           <a href="https://www.instagram.com/region_702rus" target="_blank" class="soc">📸 Instagram</a>
           <a href="https://www.avito.ru/brands/5c4e156e5aae5295ed59dbab4f619199" target="_blank" class="soc">🔑 Авито</a>
         </div>
+        <p class="meta-note">Instagram принадлежит компании Meta Platforms Inc., признанной
+        экстремистской организацией, её деятельность запрещена на территории РФ.</p>
       </div>
     </div>
   </div>
@@ -292,9 +301,9 @@
     <div><div class="foot-logo">РЕГИОН <span>702</span></div><div class="foot-sl">Честный импорт. От осмотра до ключей.</div></div>
     <div class="foot-links">
       <a href="#directions">Направления</a><a href="/china.html">Китай</a><a href="/korea.html">Корея</a><a href="/kyrgyzstan.html">Кыргызстан</a><a href="#process">Как работаем</a>
-      <a href="#trust">Отзывы</a><a href="#faq">FAQ</a><a href="#contacts">Контакты</a>
+      <a href="#trust">Отзывы</a><a href="#faq">FAQ</a><a href="#contacts">Контакты</a><a href="/privacy.html">Политика конфиденциальности</a>
     </div>
-    <div class="foot-copy">© 2025 Регион 702 · Уфа · Импорт авто под заказ</div>
+    <div class="foot-copy">© 2026 Регион 702 · Уфа · Импорт авто под заказ</div>
   </div>
 </footer>
 
@@ -314,9 +323,9 @@ const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isInte
 document.querySelectorAll('.r').forEach(el=>observer.observe(el));
 
 function toggleFq(btn){
-  const it=btn.closest('.fq'),wasOpen=it.classList.contains('on');
-  document.querySelectorAll('.fq.on').forEach(f=>f.classList.remove('on'));
-  if(!wasOpen)it.classList.add('on');
+  const it=btn.closest('.fq'),wasOpen=it.classList.contains('open');
+  document.querySelectorAll('.fq.open').forEach(f=>f.classList.remove('open'));
+  if(!wasOpen)it.classList.add('open');
 }
 
 function openLB(el){
@@ -335,6 +344,10 @@ async function sendForm(){
   const name=document.getElementById('fn').value.trim();
   const phone=document.getElementById('fp').value.trim();
   if(!name||!phone){alert('Пожалуйста, укажите имя и телефон.');return}
+  if(!document.getElementById('fagree').checked){
+    alert('Отметьте согласие на обработку персональных данных — без него мы не можем принять заявку.');
+    return;
+  }
   const car=document.getElementById('fc').value||'не указано';
   const sel=document.getElementById('fco');
   const country=sel.options[sel.selectedIndex].text;

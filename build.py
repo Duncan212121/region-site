@@ -52,6 +52,65 @@ def shared_blocks():
     return blocks
 
 
+def fill_company(text, company, missing):
+    """Подставляет реквизиты вместо {{ключ}}. Незаполненные подсвечиваем,
+    чтобы пустое место было видно и на странице, и в консоли сборки."""
+
+    def sub(m):
+        key = m.group(1)
+        val = company.get(key, "")
+        if val:
+            return escape(str(val))
+        missing.add(key)
+        return f'<span class="doc-todo">не заполнено: {escape(key)}</span>'
+
+    return re.sub(r"\{\{([^}]+)\}\}", sub, text)
+
+
+def simple_page(title, description, slug, content, blocks):
+    """Текстовая страница — политика конфиденциальности и подобные."""
+    return f"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{escape(title)} — Регион 702</title>
+<meta name="description" content="{escape(description)}">
+<meta name="robots" content="noindex,follow">
+<link rel="canonical" href="{SITE}/{slug}">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+{blocks['nav']}
+
+{blocks['mob']}
+
+<main class="doc">
+  <nav class="crumbs" aria-label="Хлебные крошки">
+    <a href="/">Главная</a><span>/</span><span class="crumb-now">{escape(title)}</span>
+  </nav>
+  <h1 class="doc-title">{escape(title)}</h1>
+  {content}
+  <div class="cp-back"><a href="/">← На главную</a></div>
+</main>
+
+{blocks['footer']}
+
+<script>
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('s',scrollY>50));
+function toggleMob(){{document.getElementById('mob').classList.toggle('on')}}
+</script>
+</body>
+</html>
+"""
+
+
 def card(car):
     """Карточка авто в каталоге на главной."""
     flag, country, days = COUNTRIES[car["country"]]
@@ -250,7 +309,24 @@ def main():
     )
     home_path.write_text(home, encoding="utf-8")
 
-    urls = ["/", "/china.html", "/korea.html", "/kyrgyzstan.html", "/privacy.html"]
+    # политика конфиденциальности
+    company = json.loads((ROOT / "data/company.json").read_text(encoding="utf-8"))
+    missing = set()
+    body = fill_company(
+        (ROOT / "data/privacy.html").read_text(encoding="utf-8"), company, missing
+    )
+    (ROOT / "privacy.html").write_text(
+        simple_page(
+            "Политика конфиденциальности",
+            "Как Регион 702 обрабатывает и защищает персональные данные посетителей сайта.",
+            "privacy.html",
+            body,
+            blocks,
+        ),
+        encoding="utf-8",
+    )
+
+    urls = ["/", "/china.html", "/korea.html", "/kyrgyzstan.html"]
     urls += [f"/auto/{c['slug']}.html" for c in published]
     body = "\n".join(
         f"  <url><loc>{SITE}{u}</loc></url>" for u in urls
@@ -267,6 +343,10 @@ def main():
         print("черновики (не попадут в каталог, когда появится хоть одно готовое):")
         for d in drafts:
             print(f"  · {d}")
+    if missing:
+        print("\nВ политике конфиденциальности не заполнены реквизиты — data/company.json:")
+        for key in sorted(missing):
+            print(f"  · {key}")
 
 
 if __name__ == "__main__":
