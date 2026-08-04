@@ -156,6 +156,12 @@ def car_meta(car):
     return flag, country, days, year, title
 
 
+def small(path):
+    """Путь к уменьшенной копии, если она есть рядом с крупной."""
+    sm = path.replace(".jpg", "-sm.jpg")
+    return sm if (ROOT / sm.lstrip("/")).exists() else path
+
+
 def price_block(car, prefix="от"):
     if not car.get("price"):
         return f'<div class="price-wrap"><div class="price">Договорная</div></div>'
@@ -169,9 +175,9 @@ def card(car):
     """Карточка авто в каталоге на главной."""
     flag, country, days, year, title = car_meta(car)
     if car.get("photos"):
+        src = small(f'/img/cars/{car["slug"]}/{car["photos"][0]}')
         shot = (
-            f'<div class="car-shot"><img class="car-img" '
-            f'src="/img/cars/{car["slug"]}/{car["photos"][0]}" '
+            f'<div class="car-shot"><img class="car-img" src="{src}" '
             f'alt="{escape(title)}" loading="lazy"></div>'
         )
     else:
@@ -219,7 +225,7 @@ def car_page(car, blocks):
         thumbs = "\n        ".join(
             f'<button class="cg-thumb{" on" if i == 0 else ""}" onclick="showShot(this,\'{p}\')" '
             f'aria-label="Фото {i + 1}">'
-            f'<img src="{p}" alt="{escape(title)} — фото {i + 1}" loading="lazy"></button>'
+            f'<img src="{small(p)}" alt="{escape(title)} — фото {i + 1}" loading="lazy"></button>'
             for i, p in enumerate(photos)
         )
         gallery = f'\n      <div class="cg-thumbs">\n        {thumbs}\n      </div>'
@@ -408,8 +414,8 @@ def main():
     for car in cars:
         (ROOT / f"{car['slug']}.html").write_text(car_page(car, blocks), encoding="utf-8")
 
-    # в каталог на главной пускаем только готовые
-    published = [c for c in cars if c.get("status") == "готово"] or cars
+    # в каталог попадает всё, кроме явно скрытого
+    published = [c for c in cars if c.get("status") != "скрыто"]
     grid = "\n".join(card(c) for c in published)
     home_path = ROOT / "index.html"
     home = home_path.read_text(encoding="utf-8")
@@ -453,11 +459,11 @@ def main():
         encoding="utf-8",
     )
 
-    drafts = [c["slug"] for c in cars if c.get("status") != "готово"]
+    drafts = [c["slug"] for c in cars if not c.get("photos")]
     print(f"страниц авто: {len(cars)} | в каталоге: {len(published)}")
     print(f"фото клиентов: {n_clients} | скриншотов отзывов: {n_reviews}")
     if drafts:
-        print("черновики (не попадут в каталог, когда появится хоть одно готовое):")
+        print("ждут фотографий:")
         for d in drafts:
             print(f"  · {d}")
     if missing:
