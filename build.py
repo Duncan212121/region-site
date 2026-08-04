@@ -52,12 +52,36 @@ def shared_blocks():
     return blocks
 
 
+def operator_line(company, missing):
+    """Как оператор представлен в политике. У самозанятого нет ОГРН — он
+    опознаётся по ФИО и ИНН, поэтому строка собирается по-разному."""
+    form = company.get("форма", "").strip().lower()
+
+    def need(key):
+        val = str(company.get(key, "")).strip()
+        if val:
+            return escape(val)
+        missing.add(key)
+        return f'<span class="doc-todo">не заполнено: {escape(key)}</span>'
+
+    if form == "самозанятый":
+        return (
+            f"{need('фио')}, применяющий специальный налоговый режим "
+            f'«Налог на профессиональный доход», ИНН {need("инн")}'
+        )
+    if form == "ип":
+        return f"Индивидуальный предприниматель {need('фио')}, ИНН {need('инн')}, ОГРНИП {need('огрн')}"
+    return f"{need('название')}, ИНН {need('инн')}, ОГРН {need('огрн')}"
+
+
 def fill_company(text, company, missing):
     """Подставляет реквизиты вместо {{ключ}}. Незаполненные подсвечиваем,
     чтобы пустое место было видно и на странице, и в консоли сборки."""
 
     def sub(m):
         key = m.group(1)
+        if key == "оператор":
+            return operator_line(company, missing)
         val = company.get(key, "")
         if val:
             return escape(str(val))
