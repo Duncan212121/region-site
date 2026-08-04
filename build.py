@@ -184,12 +184,14 @@ def card(car):
         shot = '<div class="car-shot car-nophoto"><span>Фото готовится</span></div>'
 
     yr = f' <span class="car-yr">{year}</span>' if year else ""
+    state = (f'<span class="car-state">{escape(car["состояние"])}</span>'
+             if car.get("состояние") else "")
     short = f'<div class="car-short">{escape(car["short"])}</div>' if car.get("short") else ""
     return (
         f'    <a class="car r" href="/{car["slug"]}.html">'
         f"{shot}"
         f'<div class="car-body">'
-        f'<div class="car-origin">{flag} {country}</div>'
+        f'<div class="car-origin">{flag} {country}{state}</div>'
         f'<div class="car-name">{escape(car["name"])}{yr}</div>'
         f"{short}"
         f'<div class="car-foot">{price_block(car)}'
@@ -253,14 +255,20 @@ def car_page(car, blocks):
         )
 
     if car.get("specs"):
-        rows = "\n        ".join(
-            f'<div class="spec"><div class="spec-k">{escape(k)}</div>'
-            f'<div class="spec-v">{escape(str(v))}</div></div>'
-            for k, v in car["specs"].items()
-        )
+        first = next(iter(car["specs"].values()))
+        groups = car["specs"] if isinstance(first, dict) else {"": car["specs"]}
+        parts = []
+        for group_name, rows in groups.items():
+            head = f'\n    <h3 class="specs-h3">{escape(group_name)}</h3>' if group_name else ""
+            body = "\n        ".join(
+                f'<div class="spec"><div class="spec-k">{escape(k)}</div>'
+                f'<div class="spec-v">{escape(str(v))}</div></div>'
+                for k, v in rows.items()
+            )
+            parts.append(f'{head}\n    <div class="specs">\n        {body}\n    </div>')
         blocks_html.append(
-            f'\n  <div class="cp-block">\n    <h2 class="cp-h2">Характеристики</h2>\n'
-            f'    <div class="specs">\n        {rows}\n    </div>\n  </div>'
+            f'\n  <div class="cp-block">\n    <h2 class="cp-h2">Характеристики</h2>'
+            f'{"".join(parts)}\n  </div>'
         )
 
     if car.get("faq"):
@@ -294,6 +302,18 @@ def car_page(car, blocks):
         schema["image"] = SITE + photos[0]
     if car.get("price"):
         schema["offers"]["price"] = car["price"]
+
+    state_badge = (f'<span class="car-state">{escape(car["состояние"])}</span>'
+                   if car.get("состояние") else "")
+
+    highlights = ""
+    if car.get("highlights"):
+        cells = "\n        ".join(
+            f'<div class="hl"><div class="hl-v">{escape(str(v))}</div>'
+            f'<div class="hl-k">{escape(k)}</div></div>'
+            for k, v in car["highlights"].items()
+        )
+        highlights = f'\n      <div class="hls">\n        {cells}\n      </div>'
 
     wa = escape(f"Здравствуйте, интересует {name} из {country}")
     return f"""<!DOCTYPE html>
@@ -338,7 +358,7 @@ def car_page(car, blocks):
     </div>
 
     <div class="cp-side">
-      <div class="car-origin">{flag} {country}</div>
+      <div class="car-origin">{flag} {country}{state_badge}</div>
       <h1 class="cp-title">{escape(name)}{f' <em>{year}</em>' if year else ''}</h1>
       <div class="cp-price">{price_block(car, prefix="Под ключ от")}</div>
       <p class="cp-note">Покупка + логистика + таможня + утильсбор + документы.
@@ -346,7 +366,7 @@ def car_page(car, blocks):
       <div class="cp-facts">
         <div class="cp-fact"><div class="cp-fact-k">Срок доставки</div><div class="cp-fact-v">{days}</div></div>
         <div class="cp-fact"><div class="cp-fact-k">Видеопроверка</div><div class="cp-fact-v">Бесплатно</div></div>
-      </div>
+      </div>{highlights}
       <a href="/#contacts" class="btn-g cp-cta">Рассчитать стоимость</a>
       <a href="https://wa.me/79378561566?text={wa}" target="_blank" rel="noopener" class="btn-o cp-cta">Спросить в WhatsApp</a>
     </div>
