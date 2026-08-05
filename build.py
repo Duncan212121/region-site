@@ -444,6 +444,17 @@ def main():
     clients, n_clients = gallery("img/clients", "cli-photo", "Клиент Регион 702 со своим автомобилем")
     home = replace_block(home, "КЛИЕНТЫ", f'  <div class="cli-grid r">\n{clients}  </div>\n')
 
+    hidden = [c for c in cars if c.get("status") == "скрыто"]
+    if hidden:
+        links = ", ".join(
+            f'<a href="/{c["slug"]}.html">{escape(c["name"])}</a>' for c in hidden
+        )
+        more = (f'  <p class="cat-more r">Также возим под заказ: {links} — '
+                f'фотографии этих моделей готовим, стоимость назовём по запросу.</p>\n')
+    else:
+        more = ""
+    home = replace_block(home, "ЕЩЁ", more)
+
     reviews, n_reviews = gallery(
         "img/reviews", "rv-card", "Отзыв клиента на Авито", onclick="openLB(this)"
     )
@@ -468,8 +479,10 @@ def main():
         encoding="utf-8",
     )
 
+    # в карту сайта попадают все страницы машин, даже скрытые из каталога:
+    # они существуют по своим адресам и уже проиндексированы
     urls = ["/", "/china.html", "/korea.html", "/kyrgyzstan.html"]
-    urls += [f"/{c['slug']}.html" for c in published]
+    urls += [f"/{c['slug']}.html" for c in cars]
     body = "\n".join(
         f"  <url><loc>{SITE}{u}</loc></url>" for u in urls
     )
