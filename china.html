@@ -266,6 +266,17 @@ footer{background:var(--g1);border-top:1px solid var(--bd);padding:32px 52px}
   .more-cars-grid{grid-template-columns:1fr;gap:24px}
   .more-cars-cta{min-width:0}
 }
+
+.consent{display:flex;align-items:flex-start;gap:11px;margin:18px 0 4px;cursor:pointer}
+.consent input{appearance:none;width:17px;height:17px;flex-shrink:0;margin-top:1px;cursor:pointer;
+  border:1px solid var(--bd);background:rgba(255,255,255,.04);transition:.2s;position:relative}
+.consent input:checked{background:var(--gold);border-color:var(--gold)}
+.consent input:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;color:var(--bk);font-size:12px;line-height:1}
+.consent input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.consent-t{font-size:11.5px;color:var(--wd);line-height:1.6}
+.consent-t a{color:var(--gold);border-bottom:1px solid rgba(200,169,110,.35)}
+.consent-t a:hover{border-bottom-color:var(--gold)}
 </style>
 </head>
 <body>
@@ -596,6 +607,11 @@ footer{background:var(--g1);border-top:1px solid var(--bd);padding:32px 52px}
           </select>
         </div>
         <div class="fg"><label class="fl">Комментарий</label><textarea class="ft" id="fcom" placeholder="Бюджет, комплектация, цвет, пожелания..."></textarea></div>
+        <label class="consent">
+          <input type="checkbox" id="fagree">
+          <span class="consent-t">Я даю согласие на обработку персональных данных и принимаю
+          <a href="/privacy.html" target="_blank">политику конфиденциальности</a>.</span>
+        </label>
         <button class="fsub" id="submitBtn" onclick="sendForm()">Отправить заявку →</button>
       </div>
       <div class="success" id="suc">
@@ -626,7 +642,7 @@ footer{background:var(--g1);border-top:1px solid var(--bd);padding:32px 52px}
     <div><div class="foot-logo">РЕГИОН <span>702</span></div><div class="foot-sl">Честный импорт. От осмотра до ключей.</div></div>
     <div class="foot-links">
       <a href="/">Главная</a><a href="/china.html">Китай</a><a href="/korea.html">Корея</a><a href="/kyrgyzstan.html">Кыргызстан</a><a href="/#process">Как работаем</a><a href="/#trust">Отзывы</a><a href="#contacts">Контакты</a>
-    </div>
+    <a href="/privacy.html">Политика конфиденциальности</a></div>
     <div class="foot-copy">© 2026 Регион 702 · Уфа · Импорт авто под заказ</div>
   </div>
 </footer>
@@ -655,6 +671,10 @@ async function sendForm(){
   const name=document.getElementById('fn').value.trim();
   const phone=document.getElementById('fp').value.trim();
   if(!name||!phone){alert('Пожалуйста, укажите имя и телефон.');return}
+  if(!document.getElementById('fagree').checked){
+    alert('Отметьте согласие на обработку персональных данных — без него мы не можем принять заявку.');
+    return;
+  }
   const car=document.getElementById('fc').value||'не указано';
   const sel=document.getElementById('fco');
   const country=sel.options[sel.selectedIndex].text;
