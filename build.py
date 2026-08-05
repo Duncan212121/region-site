@@ -425,6 +425,37 @@ def replace_block(html, marker, content):
     )
 
 
+def client_rail_html():
+    """Лента фотографий клиентов: горизонтальная прокрутка вместо длинной сетки.
+    Каждый снимок сохраняет свои пропорции — ничего не обрезается, — а по
+    щелчку открывается на весь экран."""
+    files = sorted(
+        f.name for f in (ROOT / "img/clients").iterdir()
+        if f.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
+    )
+    shots = "\n".join(
+        f'      <button class="cli-photo" onclick="openLB(this)" aria-label="Открыть фотографию">'
+        f'<img src="/img/clients/{f}" alt="Клиент Регион 702 со своим автомобилем" loading="lazy">'
+        f"</button>"
+        for f in files
+    )
+    return (
+        '  <div class="cli-rail-wrap r">\n'
+        '    <button class="rail-btn rail-prev" onclick="railMove(-1)" aria-label="Предыдущие фото">‹</button>\n'
+        '    <div class="cli-rail" id="cliRail">\n'
+        f"{shots}\n"
+        "    </div>\n"
+        '    <button class="rail-btn rail-next" onclick="railMove(1)" aria-label="Следующие фото">›</button>\n'
+        "  </div>\n"
+        f'  <p class="cli-hint r">{len(files)} фотографий · листайте вбок · '
+        f"нажмите, чтобы открыть</p>\n"
+    )
+
+
+def client_rail(_home):
+    return len([f for f in (ROOT / "img/clients").iterdir() if f.suffix.lower() == ".jpg"])
+
+
 def gallery(folder, css_class, alt, onclick=""):
     """Собирает галерею из всего, что лежит в папке. Порядок — по имени файла,
     поэтому фотографии удобно называть 01.jpg, 02.jpg и так далее."""
@@ -459,8 +490,8 @@ def main():
     home = home_path.read_text(encoding="utf-8")
     home = replace_block(home, "КАТАЛОГ", f'  <div class="cars-grid">\n{grid}\n  </div>\n')
 
-    clients, n_clients = gallery("img/clients", "cli-photo", "Клиент Регион 702 со своим автомобилем")
-    home = replace_block(home, "КЛИЕНТЫ", f'  <div class="cli-grid r">\n{clients}  </div>\n')
+    n_clients = client_rail(home)
+    home = replace_block(home, "КЛИЕНТЫ", client_rail_html())
 
     hidden = [c for c in cars if c.get("status") == "скрыто"]
     if hidden:

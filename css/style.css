@@ -397,3 +397,36 @@ footer{background:var(--g1);border-top:1px solid var(--bd);padding:32px 52px}
 @media(max-width:1100px){
   .car-cta{grid-column:1 / -1 !important;min-height:0;padding:36px 24px}
 }
+
+/* ── лента фотографий клиентов ── */
+.cli-rail-wrap{position:relative;margin-top:44px}
+.cli-rail{display:flex;gap:2px;overflow-x:auto;scroll-behavior:smooth;
+  scroll-snap-type:x mandatory;padding-bottom:2px;
+  scrollbar-width:thin;scrollbar-color:var(--gd) transparent}
+.cli-rail::-webkit-scrollbar{height:4px}
+.cli-rail::-webkit-scrollbar-thumb{background:var(--gd)}
+.cli-rail::-webkit-scrollbar-track{background:rgba(255,255,255,.04)}
+.cli-photo{flex:0 0 auto;height:400px;padding:0;border:none;background:var(--g2);
+  cursor:zoom-in;overflow:hidden;scroll-snap-align:start;display:block}
+.cli-photo img{height:100%;width:auto;display:block;transition:transform .5s ease,opacity .3s}
+.cli-photo:hover img{transform:scale(1.05)}
+.cli-photo:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+
+.rail-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:3;
+  width:46px;height:46px;border:1px solid var(--bd);background:rgba(10,10,10,.85);
+  color:var(--gold);font-size:26px;line-height:1;cursor:pointer;backdrop-filter:blur(6px);
+  transition:all .25s;display:flex;align-items:center;justify-content:center;font-family:var(--fb)}
+.rail-btn:hover{background:var(--gold);color:var(--bk);border-color:var(--gold)}
+.rail-prev{left:-8px}
+.rail-next{right:-8px}
+.rail-btn[disabled]{opacity:.25;pointer-events:none}
+
+.cli-hint{margin-top:14px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gd)}
+
+@media(max-width:1100px){
+  .cli-photo{height:320px}
+  .rail-btn{display:none}
+}
+@media(max-width:600px){
+  .cli-photo{height:260px}
+}
