@@ -200,6 +200,23 @@ def card(car):
     )
 
 
+def cta_tile(count):
+    """Карточка-призыв в конце каталога. Растягивается ровно на пустые ячейки
+    трёхколоночной сетки, поэтому каталог всегда остаётся ровным прямоугольником."""
+    span = 3 - (count % 3) if count % 3 else 3
+    return (
+        f'    <div class="car car-cta r" style="grid-column:span {span}">'
+        f'<div class="cta-in">'
+        f'<div class="cta-t">Не нашли свою модель?</div>'
+        f'<p class="cta-d">Привезём любой автомобиль под ваш запрос и бюджет — '
+        f'от подбора и видеопроверки до ключей в руках.</p>'
+        f'<div class="cta-btns">'
+        f'<a href="#contacts" class="btn-g">Рассчитать стоимость</a>'
+        f'<a href="https://t.me/region_702auto" target="_blank" rel="noopener" class="btn-o">Смотреть в Telegram</a>'
+        f'</div></div></div>'
+    )
+
+
 def car_page(car, blocks):
     """Отдельная страница автомобиля."""
     flag, country, days, year, title = car_meta(car)
@@ -437,6 +454,7 @@ def main():
     # в каталог попадает всё, кроме явно скрытого
     published = [c for c in cars if c.get("status") != "скрыто"]
     grid = "\n".join(card(c) for c in published)
+    grid += "\n" + cta_tile(len(published))
     home_path = ROOT / "index.html"
     home = home_path.read_text(encoding="utf-8")
     home = replace_block(home, "КАТАЛОГ", f'  <div class="cars-grid">\n{grid}\n  </div>\n')
