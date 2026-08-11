@@ -385,7 +385,7 @@ def car_page(car, blocks):
         <div class="cp-fact"><div class="cp-fact-k">Видеопроверка</div><div class="cp-fact-v">Бесплатно</div></div>
       </div>{highlights}
       <a href="/#contacts" class="btn-g cp-cta">Рассчитать стоимость</a>
-      <a href="https://wa.me/79177666009?text={wa}" target="_blank" rel="noopener" class="btn-o cp-cta">Спросить в WhatsApp</a>
+      <a href="https://wa.me/79378561566?text={wa}" target="_blank" rel="noopener" class="btn-o cp-cta">Спросить в WhatsApp</a>
     </div>
   </div>
 {''.join(blocks_html)}
